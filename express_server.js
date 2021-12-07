@@ -13,6 +13,7 @@ const urlDatabase = {
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
 
+
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
@@ -31,13 +32,26 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
+app.get("/u/:shortURL", (req, res) => {
+  const longURL = urlDatabase[req.params.shortURL]
+  res.redirect(longURL);
+});
+
+
 app.post("/urls", (req, res) => {
-  console.log(req.body)
-  res.send("okay")
-})
+  const shortURL = generateRandomString();
+  urlDatabase[shortURL] = req.body.longURL;
+  res.redirect(`urls/${shortURL}`);
+});
 
 app.get("/urls/new", (req, res) => {
   res.render("urls_new");
+});
+
+app.get("/urls/:shortURL", (req, res) => {
+  const long = urlDatabase[req.params.shortURL];
+  const templateVars = { shortURL: req.params.shortURL, longURL: long} ;
+  res.render("urls_show", templateVars);
 });
 
 app.get("/urls/:shortURL", (req, res) => {
@@ -46,15 +60,19 @@ app.get("/urls/:shortURL", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
+
+app.post("/urls", (req, res) => {
+  console.log(req.body);  
+  res.send(generateRandomString(6)); 
+});
+
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
 
-function generateRandomString(length) {
-  let char = 'A1B2C3'
-  let answer = '';
-  for (let i = 0; i < length; i++) {
-    answer += char.charAt((Math.random()*char.length));
-  }
-  return answer;
-} 
+function generateRandomString() {
+  let random = Math.random().toString(36).slice(6);
+  console.log(random);
+  return random;
+}
+console.log(generateRandomString('nba.com'));
