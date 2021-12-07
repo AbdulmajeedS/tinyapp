@@ -10,13 +10,13 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+const bodyParser = require("body-parser");
+app.use(bodyParser.urlencoded({extended: true}));
+
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
 
-app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}!`);
-});
 
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
@@ -31,8 +31,30 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
+app.post("/urls", (req, res) => {
+  console.log(req.body)
+  res.send("okay")
+})
+
+app.get("/urls/new", (req, res) => {
+  res.render("urls_new");
+});
+
 app.get("/urls/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
   let templateVars = { shortURL, longURL: urlDatabase[shortURL]};
   res.render("urls_show", templateVars);
 });
+
+app.listen(PORT, () => {
+  console.log(`Example app listening on port ${PORT}!`);
+});
+
+function generateRandomString(length) {
+  let char = 'A1B2C3'
+  let answer = '';
+  for (let i = 0; i < length; i++) {
+    answer += char.charAt((Math.random()*char.length));
+  }
+  return answer;
+} 
