@@ -33,10 +33,12 @@ app.get("/urls", (req, res) => {
 });
 
 app.get("/u/:shortURL", (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL]
-  res.redirect(longURL);
+  shortURL = req.params.shortURL;
+  if(urlDatabase.hasOwnProperty(shortURL)) {
+    let longURL = urlDatabase[shortURL];
+    res.redirect(`${longURL}`);
+  };
 });
-
 
 app.post("/urls", (req, res) => {
   const shortURL = generateRandomString();
@@ -61,11 +63,6 @@ app.get("/urls/:shortURL", (req, res) => {
 });
 
 
-app.post("/urls", (req, res) => {
-  console.log(req.body);  
-  res.send(generateRandomString(6)); 
-});
-
 app.post("/urls/:shortURL", (req, res) => {
   let shortURL = req.params.shortURL;
   urlDatabase[shortURL] = req.body.longURL;
@@ -78,6 +75,13 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   res.redirect("/urls");
 });
 
+app.post("/urls/:shortURL", (req, res) => {
+  let shortURL = req.params.shortURL;
+  urlDatabase[shortURL] = req.body.longURL
+  res.redirect("/urls")
+});
+
+
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
@@ -87,4 +91,4 @@ function generateRandomString() {
   console.log(random);
   return random;
 }
-console.log(generateRandomString('nba.com'));
+
