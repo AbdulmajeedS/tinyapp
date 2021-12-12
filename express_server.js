@@ -52,7 +52,7 @@ const urlsForUserId = function (id) {
 
   for (const shortURL in urlDatabase) {
     const urlObj = urlDatabase[shortURL];
-    if (urlObj.userId === id) {
+    if (urlObj.userID === id) {
       result[shortURL] = urlObj
     }
   }
@@ -74,6 +74,7 @@ app.get("/urls", (req, res) => {
     return res.status(401).send("You must <a href='/login'>login</a> first.");
   }
   const urls = urlsForUserId(id)
+  console.log("urls", urls)
   const templateVars = { urls, user }
   res.render("urls_index", templateVars);
 });
@@ -97,13 +98,13 @@ app.get("/hello", (req, res) => {
 //   res.render("urls_index", templateVars);
 // });
 
-app.get("/u/:shortURL", (req, res) => {
-  shortURL = req.params.shortURL;
-  if (urlDatabase.hasOwnProperty(shortURL)) {
-    let longURL = urlDatabase[shortURL];
-    res.redirect(`${longURL}`);
-  };
-});
+// app.get("/u/:shortURL", (req, res) => {
+//   shortURL = req.params.shortURL;
+//   if (urlDatabase.hasOwnProperty(shortURL)) {
+//     let longURL = urlDatabase[shortURL];
+//     res.redirect(`${longURL}`);
+//   };
+// });
 
 app.get("/user_test", function (req, resp) {
   res.render("user_test", { users });
@@ -119,26 +120,30 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new", { user });
 });
 
-app.get("/urls/:id", function (req, res) {
-  let templateVars = {
-    shortURL: req.params.id,
-    URL: urlDatabase[req.params.id], user: users[req.cookies[COOKIE_NAME]]
-  };
-  res.render("urls_show", templateVars);
-});
+// app.get("/urls/:id", function (req, res) {
+//   let templateVars = {
+//     shortURL: req.params.id,
+//     URL: urlDatabase[req.params.id], user: users[req.cookies[COOKIE_NAME]]
+//   };
+//   res.render("urls_show", templateVars);
+// });
 
 app.get("/register", (req, res) => {
-  res.render("register", { users: null });
+  res.render("register", { user: null });
 });
 
 app.get("/urls/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
-  let templateVars = { shortURL, longURL: urlDatabase[shortURL], users: "" };
+  let templateVars = { 
+    shortURL, 
+    longURL: urlDatabase[shortURL].longURL, 
+    user: users[req.cookies[COOKIE_NAME] ]
+  };
   res.render("urls_show", templateVars);
 });
 
 app.get("/login", (req, res) => {
-  res.render("login", { users: null });
+  res.render("login", { user: null });
 });
 
 app.post("/urls", (req, res) => {
@@ -166,7 +171,7 @@ app.post("/register", function (req, res) {
   let email = req.body.email;
   let password = req.body.password;
   if (!email || email === "" && !password || password === "") {
-    res.sendStatus(400)
+    res.status(400).send("Please put in email and and password")
   } else {
     let match = false
     for (let i in users) {
@@ -174,8 +179,8 @@ app.post("/register", function (req, res) {
         match = true
       }
     }
-    if (!match) {
-      res.sendStatus(400)
+    if (match) {
+      res.status(400).send("email is already registered")
     }
     let id = generateRandomString()
     console.log(`${email} ${password}`)
