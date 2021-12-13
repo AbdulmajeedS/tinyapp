@@ -1,9 +1,16 @@
 const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
-
-
+const bcrypt = require('bcryptjs');
 const COOKIE_NAME = "user_id"
+
+const bodyParser = require("body-parser");
+const cookieParser = require("cookie-parser");
+const { request } = require("express");
+
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(cookieParser())
+
 
 app.set("view engine", "ejs");
 
@@ -29,7 +36,7 @@ const users = {
   "user2RandomID": {
     id: "user2RandomID",
     email: "user2@example.com",
-    password: "123"
+    password: "456"
   },
 
 };
@@ -66,11 +73,6 @@ const urlsForUserId = function (id) {
 };
 
 
-const bodyParser = require("body-parser");
-const cookieParser = require("cookie-parser");
-
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(cookieParser())
 
 app.get("/urls", (req, res) => {
   const id = req.cookies[COOKIE_NAME];
@@ -90,7 +92,7 @@ app.get("/", (req, res) => {
 
 
 app.get("/urls.json", (req, res) => {
-  res.json(urlDatabase);
+  response.json(users);
 });
 
 app.get("/hello", (req, res) => {
@@ -104,11 +106,17 @@ app.get("/hello", (req, res) => {
 // });
 
 // app.get("/u/:shortURL", (req, res) => {
-//   shortURL = req.params.shortURL;
-//   if (urlDatabase.hasOwnProperty(shortURL)) {
-//     let longURL = urlDatabase[shortURL];
-//     res.redirect(`${longURL}`);
-//   };
+//   const shortURL = req.params.shortURL;
+//   if (urlDatabase[shortURL] === undefined) {
+//     //if they put in a shortURL that doesn't exist in our database
+//     res.send(
+//       "It appears that URL does not exist. Consider checking My URLs again or making a tinyURL for that website!"
+//     );
+//   } else {
+//     const longURL = urlDatabase[req.params.shortURL].longUrl;
+
+//     res.redirect(longURL);
+//   }
 // });
 
 app.get("/user_test", function (req, resp) {
@@ -125,13 +133,17 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new", { user });
 });
 
-app.get("/urls/:id", function (req, res) {
-  let templateVars = { 
-    shortURL: req.params.id, 
-    longURL: urlDatabase[req.params.id].longURL,
-    user: users[req.cookies[COOKIE_NAME] ]
-  };
-  res.render("urls_show", templateVars);
+app.post("/urls/:id", (req, res) => {
+  const shortURL = req.params.id;
+  const newURL = req.body.newURL;
+  const loggedIn = req.cookies.user_id;
+
+  if (loggedIn === urlDatabase[shortURL].userID) {
+    urlDatabase[shortURL] = {longURL: newURL, userID: loggedIn};
+    res.redirect("/urls");
+  } else {
+    res.send("You are nto authorized to edit this URL. Consider making your own 😃");
+  }
 });
 
 app.get("/register", (req, res) => {
@@ -179,33 +191,34 @@ app.post("/urls", (req, res) => {
 
 
 app.post("/register", function (req, res) {
+  console.log(req.body)
   let email = req.body.email;
   let password = req.body.password;
-  if (!email || email === "" && !password || password === "") {
-    res.status(400).send("Please put in email and and password")
-  } else {
-    let match = false
-    for (let i in users) {
-      if (users[i].email === email && users[i].password === password) {
-        match = true
-      }
-    }
-    if (match) {
-      res.status(400).send("email is already registered")
-    }
-    let id = generateRandomString()
-    console.log(`${email} ${password}`)
-    console.log(match)
-    users[id] = {
-      id: id,
-      email: email,
-      password: password
-    };
+  const user = getUserByEmail(email, users);
+  const hashedPassword = bcrypt.hashSync(password, 10);
 
-    res.cookie(COOKIE_NAME, id);
+  if (!email || email === "" && !password || password == "") {
+    res.status(400).send("Please put in email and and password")
+  }  else
+  {
+    let match = false;
+    for (let i in users)
+    {
+      if (users[i].email === email)
+        match = true;
+    }
+    if (match)
+      response.sendStatus(400).send("email is already registered")
+    }
+    let id = generateRandomString();
+    console.log(`${email}     ${password}`);
+    users[id] = {id: id,
+                email: email,
+                password: hashedPassword};
+    console.log(users);
+    res.cookie("user_id", id);
     res.redirect("/urls");
-  }
-});
+  });
 
 
 
@@ -216,17 +229,18 @@ app.post("/urls/:shortURL", (req, res) => {
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
-  const shortURL = req.params.shortURL;
-  const userId = req.cookies['user_id'];
-  const user = users[userId];
-
-  const url = urlDatabase[shortURL];
-  console.log('url1', url, url && url.userId === userId, shortURL, urlDatabase)
-  if (url && url.userID === userId)
+  const userID = req.cookies["user_ID"];
+  let shortURL = req.params.shortURL;
+  if (userID === urlDatabase[shortURL].userID) {
     delete urlDatabase[shortURL];
-  res.redirect("/urls");
-});
 
+    res.redirect("/urls");
+  } else if (userID) {
+    res.status(403).send("You are not the owner of this shortURL");
+  } else {
+    res.status(401).send("Please <a href= '/login'>login</a>");
+  }
+});
 
 app.post("/urls/:shortURL", (req, res) => {
   console.log("Save URL");
@@ -246,16 +260,28 @@ app.post("/urls/:shortURL", (req, res) => {
 
 
 
-app.post("/login", function (request, response) {
-  const name = request.body.username;
-  const existUser = Object.values(users).find(user=> user.email === name );
-  if(existUser){
-    response.cookie(COOKIE_NAME, existUser.id);
-    response.redirect("/urls");
-  }else{
-    response.sendStatus(400).render('Username does not exist')
+app.post("/login", function(request, response) {
+  const email = request.body.email;
+  const password = request.body.password;
+  const user = getUserByEmail(email,users);
+  if (!email || !password) {
+    return response.status(403).send("Fields cannot be empty.");
   }
+  if (!user) {
+    return response.status(403).send("There is no user with that email");
+  }
+
+  if (user.password !== password) {
+  if (!bcrypt.compareSync(password, user.password)) {
+    console.log(user[password]);
+    return res.status(403).send('You have entered an incorrect password');
+
+  }
+  res.cookie('user_id', user.id);
+  res.redirect("/urls");
+}
 });
+
 
 
 
