@@ -19,6 +19,11 @@ app.use(cookieSession({
 
 app.set("view engine", "ejs");
 
+function generateRandomString() {
+  let random = Math.random().toString(36).slice(6);
+  console.log(random);
+  return random;
+};
 
 const urlDatabase = {
   b6UTxQ: {
@@ -46,11 +51,6 @@ const users = {
 
 };
 
-function generateRandomString() {
-  let random = Math.random().toString(36).slice(6);
-  console.log(random);
-  return random;
-};
 
 const getUserByEmail = function (email) {
   const uservalues = Object.values(users);
@@ -76,8 +76,6 @@ const urlsForUserId = function (id) {
   return result;
 
 };
-
-
 
 app.get("/urls", (req, res) => {
   const id = req.session[COOKIE_NAME];
@@ -194,7 +192,6 @@ app.post("/urls", (req, res) => {
 
 });
 
-
 app.post("/register", function (req, res) {
   console.log(req.body)
   let email = req.body.email;
@@ -224,8 +221,6 @@ app.post("/register", function (req, res) {
     req.session.user_id = id;
     res.redirect("/urls");
   });
-
-
 
 app.post("/urls/:shortURL", (req, res) => {
   let shortURL = req.params.shortURL;
@@ -262,9 +257,6 @@ app.post("/urls/:shortURL", (req, res) => {
   res.redirect('/urls');
 });
 
-
-
-
 app.post("/login", function(request, response) {
   const email = request.body.username;
   const password = request.body.password;
@@ -288,9 +280,6 @@ app.post("/login", function(request, response) {
 }
 });
 
-
-
-
 app.post("/logout", (req, res) => {
   req.session.user_id = null;
   res.redirect('/login');
@@ -301,7 +290,6 @@ app.get("/u/:shortURL", (req, res) => {
   const longURL = urlDatabase[shortURL].longURL;
   res.redirect(longURL);
 });
-
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
