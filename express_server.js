@@ -92,7 +92,7 @@ app.get("/", (req, res) => {
 
 
 app.get("/urls.json", (req, res) => {
-  response.json(users);
+  res.json(users);
 });
 
 app.get("/hello", (req, res) => {
@@ -119,7 +119,7 @@ app.get("/hello", (req, res) => {
 //   }
 // });
 
-app.get("/user_test", function (req, resp) {
+app.get("/user_test", function (req, res) {
   res.render("user_test", { users });
 });
 
