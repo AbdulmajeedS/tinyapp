@@ -50,7 +50,7 @@ function generateRandomString() {
   let random = Math.random().toString(36).slice(6);
   console.log(random);
   return random;
-}
+};
 
 const getUserByEmail = function (email) {
   const uservalues = Object.values(users);
