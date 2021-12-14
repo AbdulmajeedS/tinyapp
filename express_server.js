@@ -221,7 +221,7 @@ app.post("/register", function (req, res) {
                 email: email,
                 password: hashedPassword};
     console.log(users);
-    req.session.user_id = id
+    req.session.user_id = id;
     res.redirect("/urls");
   });
 
@@ -292,8 +292,8 @@ app.post("/login", function(request, response) {
 
 
 app.post("/logout", (req, res) => {
-  req.session = null;
-  res.redirect('/urls');
+  req.session.user_id = null;
+  res.redirect('/login');
 });
 
 app.get("/u/:shortURL", (req, res) => {

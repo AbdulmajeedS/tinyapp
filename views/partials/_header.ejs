@@ -10,6 +10,7 @@
         <a class="nav-item nav-link" href="/urls">My URLs</a>
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
       </div>
+      </div>
       <% if (user){ %>
         <div>
           <form id="logout" method="POST" action="/logout" style="font-size: 1.05em">
@@ -21,13 +22,12 @@
         </div>
         <% } else{ %>
           <div class="text-right">
-            <form id="login" method="POST" action="/login">
-              <input placeholder="Username" class="form-control round" type="text" name="username"
-                style="width: 200px; margin: 0.2em; margin-right: 10px"></input>
-            </form>
           </div>
           <div>
-            <button class="btn btn-secondary" form="login">Login</button>
+              <div>
+              <a class="btn btn-secondary" href="/login">Login</a>
+              <a class="btn btn-secondary" href="/register">Register</a>
+             </div>
           </div>
           <% } %>
   </nav>
