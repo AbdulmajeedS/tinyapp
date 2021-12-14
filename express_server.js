@@ -208,7 +208,7 @@ app.post("/register", function (req, res) {
         match = true;
     }
     if (match)
-      response.sendStatus(400).send("email is already registered")
+      res.sendStatus(400).send("email is already registered")
     }
     let id = generateRandomString();
     console.log(`${email}     ${password}`);
@@ -261,12 +261,13 @@ app.post("/urls/:shortURL", (req, res) => {
 
 
 app.post("/login", function(request, response) {
-  const email = request.body.email;
+  const email = request.body.username;
   const password = request.body.password;
+  console.log(email, password)
   const user = getUserByEmail(email,users);
-  if (!email || !password) {
-    return response.status(403).send("Fields cannot be empty.");
-  }
+  // if (!email || email === "" && !password || password === "") {
+  //   return response.status(403).send("Fields cannot be empty.");
+  // }
   if (!user) {
     return response.status(403).send("There is no user with that email");
   }
@@ -274,11 +275,11 @@ app.post("/login", function(request, response) {
   if (user.password !== password) {
   if (!bcrypt.compareSync(password, user.password)) {
     console.log(user[password]);
-    return res.status(403).send('You have entered an incorrect password');
+    return response.status(403).send('You have entered an incorrect password');
 
   }
-  res.cookie('user_id', user.id);
-  res.redirect("/urls");
+  response.cookie('user_id', user.id);
+  response.redirect("/urls");
 }
 });
 
