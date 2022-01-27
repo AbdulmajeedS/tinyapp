@@ -102,11 +102,11 @@ app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
 
-// app.get("/urls", (req, res) => {
-//   console.log(users[req.cookies["user_id"]]);
-//   let templateVars = { urls: urlDatabase,user: users[req.cookies["user_id"]] };
-//   res.render("urls_index", templateVars);
-// });
+app.get("/urls", (req, res) => {
+  console.log(users[req.cookies["user_id"]]);
+  let templateVars = { urls: urlDatabase,user: users[req.cookies["user_id"]] };
+  res.render("urls_index", templateVars);
+});
 
 // app.get("/u/:shortURL", (req, res) => {
 //   const shortURL = req.params.shortURL;
@@ -121,6 +121,16 @@ app.get("/hello", (req, res) => {
 //     res.redirect(longURL);
 //   }
 // });
+app.get("/u/:shortURL", (req, res) => {
+  const shortURL = req.params.shortURL;
+  const longURL = urlDatabase[shortURL];
+  if (!shortURL || !longURL) {
+    res.send(
+      "There is no record of that url!"
+    );
+   }  
+    res.redirect(longURL.longURL);
+  });
 
 app.get("/user_test", function (req, res) {
   res.render("user_test", { users });
@@ -141,11 +151,15 @@ app.post("/urls/:id", (req, res) => {
   const newURL = req.body.newURL;
   const loggedIn = req.session.user_id;
 
-  if (loggedIn === urlDatabase[shortURL].userID) {
-    urlDatabase[shortURL] = {longURL: newURL, userID: loggedIn};
+  // if (loggedIn === urlDatabase[shortURL].userID) {
+  //   urlDatabase[shortURL] = {longURL: newURL, userID: loggedIn};
+  if (loggedIn) {
+    urlDatabase[shortURL].longURL === req.body.newURL
     res.redirect("/urls");
+    console.log(newURL)
+
   } else {
-    res.send("You are nto authorized to edit this URL. Consider making your own 😃");
+    res.send("You are not authorized to edit this URL. Consider making your own ");
   }
 });
 
@@ -154,13 +168,20 @@ app.get("/register", (req, res) => {
 });
 
 app.get("/urls/:shortURL", (req, res) => {
-  const shortURL = req.params.shortURL;
-  console.log('urlDatabase', urlDatabase, )
-  let templateVars = { 
-    shortURL, 
-    longURL: urlDatabase[shortURL].longURL, 
-    user: users[req.session[COOKIE_NAME] ]
-  };
+  // const shortURL = req.params.shortURL;
+  // console.log('urlDatabase', urlDatabase, )
+  // let templateVars = { 
+  //   shortURL, 
+  //   longURL: urlDatabase[shortURL],user:""}; 
+  //   user: users[req.session[COOKIE_NAME] ]
+  const userID = req.session.user_id
+  const user = users[userID]
+  const url = urlDatabase[req.params.shortURL]
+  const templateVars = {
+    user,
+    shortURL: req.params.shortURL,
+    longURL: url.longURL
+  }
   res.render("urls_show", templateVars);
 });
 
@@ -229,7 +250,7 @@ app.post("/urls/:shortURL", (req, res) => {
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
-  const userID = req.session["user_ID"];
+  const userID = req.session.user_id;
   let shortURL = req.params.shortURL;
   if (userID === urlDatabase[shortURL].userID) {
     delete urlDatabase[shortURL];
@@ -275,7 +296,7 @@ app.post("/login", function(request, response) {
     return response.status(403).send('You have entered an incorrect password');
 
   }
-  request.session('user_id', user.id);
+  request.session.user_id = user.id;
   response.redirect("/urls");
 }
 });
