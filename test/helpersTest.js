@@ -1,34 +1,32 @@
 const { assert } = require('chai');
 
-const { getUserByEmail } = require('../helpers.js');
+const { lookUpByEmail } = require('../helpers');
 
 const testUsers = {
   "userRandomID": {
-    id: "userRandomID",
-    email: "user@example.com",
-    password: "123"
+    id: "userRandomID", 
+    email: "user@example.com", 
+    password: "purple-monkey-dinosaur"
   },
   "user2RandomID": {
-    id: "user2RandomID",
-    email: "user2@example.com",
-    password: "123"
+    id: "user2RandomID", 
+    email: "user2@example.com", 
+    password: "dishwasher-funk"
   }
 };
 
-describe('getUserByEmail', function() {
+describe('lookUpByEmail', function() {
   it('should return a user with valid email', function() {
-    const user = getUserByEmail("user@example.com", testUsers);
-    const expectedUserID = "userRandomID";
-    assert.equal(user.id,expectedUserID);
-  });
-  
-  it('should return undefined when email is not in our database', function() {
-    const user = getUserByEmail("user3@example.com", testUsers);
-    assert.notDeepEqual(user,undefined);
+    const user = lookUpByEmail("user@example.com", testUsers)
+    const expectedOutput = "userRandomID";
+    // Write your assert statement here
+    assert.equal(user, expectedOutput);
   });
 
-  it('should only work on emails', function() {
-    const user = getUserByEmail("user2RandomID", testUsers);
-    assert.notDeepEqual(user,undefined);
+  it('should return undefined', function() {
+    const user = lookUpByEmail("notreal@example.com", testUsers)
+    const expectedOutput = undefined;
+    // Write your assert statement here
+    assert.equal(user, expectedOutput);
   });
 });
