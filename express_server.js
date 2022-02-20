@@ -232,24 +232,25 @@ app.post('/urls/:shortURL/delete', (req,res) => {
 
   res.redirect('/urls');
 });
-app.post("/urls/:id", (req, res) => {
-  const shortURL = req.params.id;
-  const newURL = req.body.newURL;
-  const loggedIn = req.session.user_id;
 
-  if (loggedIn) {
-    urlDatabase[shortURL].longURL === req.body.newURL
-    res.redirect("/urls");
-    console.log(newURL)
+// app.post("/urls/:id", (req, res) => {
+//   const shortURL = req.params.id;
+//   const newURL = req.body.newURL;
+//   const loggedIn = req.session.user_id;
 
-  } else {
-    res.send("You are not authorized to edit this URL. Consider making your own ");
-  }
-});
+//   if (loggedIn) {
+//     urlDatabase[shortURL].longURL === req.body.newURL
+//     res.redirect("/urls");
+//     console.log(newURL)
+
+//   } else {
+//     res.send("You are not authorized to edit this URL. Consider making your own ");
+//   }
+// });
 
 app.post('/urls/:shortURL', (req,res) => {
   urlDatabase[req.params.shortURL].longURL = req.body.longURL; 
-  res.redirect(`/urls/${req.params.shortURL}`);
+  res.redirect(`/urls`);
 })
 
 app.listen(PORT, () => {
